@@ -88,17 +88,50 @@ const reviews = [
   {
     text: "我家比熊很怕吹风，这次没有一直发抖。洗完还发了皮肤和脚垫照片，很细致。",
     avatar: "林",
-    name: "林女士 · 比熊主人"
+    name: "林女士 · 比熊主人",
+    tag: "低应激洗护"
   },
   {
     text: "猫咪洗护前会先确认状态，不硬来。毛吹得很透，回家没有潮味。",
     avatar: "周",
-    name: "周先生 · 布偶主人"
+    name: "周先生 · 布偶主人",
+    tag: "猫咪舒缓"
   },
   {
     text: "价格讲得清楚，打结加项也提前说明。修完造型比照片参考更适合我家狗。",
     avatar: "陈",
-    name: "陈女士 · 泰迪主人"
+    name: "陈女士 · 泰迪主人",
+    tag: "透明报价"
+  },
+  {
+    text: "预约后到店基本不用排队，工作人员先让狗狗熟悉环境，整个过程比之前安静很多。",
+    avatar: "王",
+    name: "王先生 · 柯基主人",
+    tag: "预约控流"
+  },
+  {
+    text: "修剪前会确认想保留的长度，眼周和脚底处理得很干净，回家走路也不打滑。",
+    avatar: "赵",
+    name: "赵女士 · 雪纳瑞主人",
+    tag: "细节修剪"
+  },
+  {
+    text: "老年犬洗护时一直有人托扶，吹风分段休息。结束后还提醒了皮肤干燥的护理方法。",
+    avatar: "许",
+    name: "许女士 · 腊肠主人",
+    tag: "老年犬照护"
+  },
+  {
+    text: "我家猫不太亲人，店员没有催，先安抚再洗。回家毛很蓬松，也没有香精味太重的问题。",
+    avatar: "沈",
+    name: "沈先生 · 英短主人",
+    tag: "温和护理"
+  },
+  {
+    text: "每次都会发洗护前后对比和下次建议，耳朵、指甲这些小项目也记录得很清楚。",
+    avatar: "黄",
+    name: "黄女士 · 博美主人",
+    tag: "可视记录"
   }
 ];
 
@@ -209,6 +242,118 @@ function BookingForm() {
         {message}
       </p>
     </form>
+  );
+}
+
+function ReviewCarousel() {
+  const [activeReviewPage, setActiveReviewPage] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(3);
+  const pageCount = Math.ceil(reviews.length / visibleCount);
+
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 768px)");
+    const syncVisibleCount = () => setVisibleCount(query.matches ? 3 : 1);
+
+    syncVisibleCount();
+    query.addEventListener("change", syncVisibleCount);
+
+    return () => query.removeEventListener("change", syncVisibleCount);
+  }, []);
+
+  useEffect(() => {
+    setActiveReviewPage((current) => current % pageCount);
+  }, [pageCount]);
+
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setActiveReviewPage((current) => (current + 1) % pageCount);
+    }, 4200);
+
+    return () => window.clearInterval(timer);
+  }, [pageCount]);
+
+  const visibleReviews = useMemo(
+    () =>
+      Array.from({ length: visibleCount }, (_, index) => {
+        const reviewIndex = (activeReviewPage * visibleCount + index) % reviews.length;
+        return reviews[reviewIndex];
+      }),
+    [activeReviewPage, visibleCount]
+  );
+
+  const goToPreviousPage = () => {
+    setActiveReviewPage((current) => (current - 1 + pageCount) % pageCount);
+  };
+
+  const goToNextPage = () => {
+    setActiveReviewPage((current) => (current + 1) % pageCount);
+  };
+
+  return (
+    <div className="relative">
+      <div className="overflow-hidden" aria-live="polite">
+        <div className="grid grid-cols-3 gap-5 max-md:grid-cols-1">
+          {visibleReviews.map((review, index) => (
+            <article
+              className="review-carousel-card flex min-h-[260px] flex-col rounded-lg border border-line bg-white p-6 shadow-card"
+              key={`${activeReviewPage}-${review.name}`}
+              style={{ animationDelay: `${index * 80}ms` }}
+            >
+              <div className="flex items-center justify-between gap-4">
+                <div className="text-xl text-gold" aria-label="五星评价">
+                  ★★★★★
+                </div>
+                <span className="rounded-full bg-soft px-3 py-1 text-xs font-bold text-mint-dark">{review.tag}</span>
+              </div>
+              <p className="my-5 text-[17px] leading-8 text-ink">“{review.text}”</p>
+              <div className="mt-auto flex items-center gap-3 font-black">
+                <span className="grid size-[42px] place-items-center rounded-full bg-coral text-white">{review.avatar}</span>
+                <span>{review.name}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+      <div className="mt-7 flex items-center justify-between gap-4 max-sm:flex-col max-sm:items-stretch">
+        <div className="flex gap-2" aria-label="客户评价轮播页码">
+          {Array.from({ length: pageCount }, (_, index) => (
+            <button
+              aria-label={`查看第 ${index + 1} 组评价`}
+              aria-pressed={index === activeReviewPage}
+              className={`h-2.5 rounded-full transition ${
+                index === activeReviewPage ? "w-8 bg-mint-dark" : "w-2.5 bg-line hover:bg-mint"
+              }`}
+              key={index}
+              type="button"
+              onClick={() => setActiveReviewPage(index)}
+            />
+          ))}
+        </div>
+        <div className="flex gap-3 max-sm:justify-end">
+          <button
+            aria-label="上一组客户评价"
+            className="grid size-11 place-items-center rounded-lg border border-line bg-white text-xl font-black text-ink transition hover:-translate-y-0.5 hover:border-mint hover:text-mint-dark hover:shadow-card"
+            type="button"
+            onClick={goToPreviousPage}
+          >
+            ‹
+          </button>
+          <button
+            aria-label="下一组客户评价"
+            className="grid size-11 place-items-center rounded-lg border border-line bg-white text-xl font-black text-ink transition hover:-translate-y-0.5 hover:border-mint hover:text-mint-dark hover:shadow-card"
+            type="button"
+            onClick={goToNextPage}
+          >
+            ›
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -395,19 +540,8 @@ export default function Home() {
 
         <section className="bg-paper py-[84px] max-sm:py-16">
           <div className="mx-auto w-[min(1160px,calc(100%-32px))]">
-            <SectionHead title="附近宠物主的真实选择" description="我们把预约节奏控制得更宽松，避免宠物扎堆等待。" />
-            <div className="grid grid-cols-3 gap-5 max-md:grid-cols-1">
-              {reviews.map((review) => (
-                <article className="rounded-lg border border-line bg-white p-6 shadow-card" key={review.name}>
-                  <div className="text-xl text-gold">★★★★★</div>
-                  <p className="m-0 text-muted">{review.text}</p>
-                  <div className="mt-6 flex items-center gap-3 font-black">
-                    <span className="grid size-[42px] place-items-center rounded-full bg-coral text-white">{review.avatar}</span>
-                    <span>{review.name}</span>
-                  </div>
-                </article>
-              ))}
-            </div>
+            <SectionHead title="附近宠物主的真实选择" description="更多真实反馈来自日常服务细节：少等待、低应激、报价清楚，也把洗护状态及时同步给主人。" />
+            <ReviewCarousel />
           </div>
         </section>
 
