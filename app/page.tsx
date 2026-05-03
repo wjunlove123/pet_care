@@ -1,10 +1,22 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
-const heroImage =
-  "https://images.unsplash.com/photo-1591946614720-90a587da4a36?auto=format&fit=crop&w=1800&q=85";
+const heroSlides = [
+  {
+    image: "/images/store-reception-carousel.png",
+    alt: "高端宠物洗护店前厅接待与等候区"
+  },
+  {
+    image: "/images/store-wash-carousel.png",
+    alt: "高端宠物洗护店专业洗护区"
+  },
+  {
+    image: "/images/store-grooming-carousel.png",
+    alt: "高端宠物洗护店美容修剪与吹风护理区"
+  }
+];
 const dogWashImage =
   "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&w=900&q=85";
 const groomingImage =
@@ -118,9 +130,10 @@ function BookingForm() {
     const owner = String(data.get("owner") ?? "").trim();
     const service = String(data.get("service") ?? "");
     const date = String(data.get("date") ?? "");
+    const arrivalTime = String(data.get("arrivalTime") ?? "");
     const time = String(data.get("time") ?? "");
 
-    setMessage(`${owner}，已收到您的${service}预约意向：${date} ${time}。门店会尽快电话确认。`);
+    setMessage(`${owner}，已收到您的${service}预约意向：${date} ${arrivalTime}（${time}）。门店会尽快电话确认。`);
     form.reset();
   }
 
@@ -164,6 +177,10 @@ function BookingForm() {
           <input className={inputClass} name="date" type="date" min={today} required />
         </label>
         <label className={labelClass}>
+          期望到店时间
+          <input className={inputClass} name="arrivalTime" type="time" min="10:00" max="20:00" step="900" required />
+        </label>
+        <label className={labelClass}>
           期望时段
           <select className={inputClass} name="time" required defaultValue="">
             <option value="">请选择</option>
@@ -196,6 +213,16 @@ function BookingForm() {
 }
 
 export default function Home() {
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActiveSlide((current) => (current + 1) % heroSlides.length);
+    }, 5200);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
   return (
     <>
       <header className="sticky top-0 z-20 border-b border-line/80 bg-paper/90 backdrop-blur">
@@ -232,7 +259,19 @@ export default function Home() {
 
       <main id="top">
         <section className="relative grid min-h-[calc(100vh-72px)] items-end overflow-hidden text-white max-md:min-h-[760px] max-sm:min-h-[720px]">
-          <Image src={heroImage} alt="洗护后的宠物狗" fill priority className="object-cover object-center" sizes="100vw" />
+          {heroSlides.map((slide, index) => (
+            <Image
+              src={slide.image}
+              alt={slide.alt}
+              fill
+              priority={index === 0}
+              className={`object-cover object-center transition-opacity duration-1000 ${
+                index === activeSlide ? "opacity-100" : "opacity-0"
+              }`}
+              sizes="100vw"
+              key={slide.image}
+            />
+          ))}
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(24,45,42,0.86)_0%,rgba(24,45,42,0.58)_42%,rgba(24,45,42,0.2)_100%)]" />
           <div className="relative mx-auto w-[min(1160px,calc(100%-32px))] py-[82px] pb-[70px] max-sm:py-16 max-sm:pb-12">
             <div className="max-w-[680px]">
@@ -252,6 +291,20 @@ export default function Home() {
                 <a className="inline-flex min-h-11 items-center justify-center rounded-lg border border-line bg-white px-5 font-bold text-ink transition hover:-translate-y-0.5 hover:bg-soft hover:text-mint-dark" href="#pricing">
                   查看套餐
                 </a>
+              </div>
+              <div className="mt-8 flex items-center gap-3" aria-label="门店环境轮播图">
+                {heroSlides.map((slide, index) => (
+                  <button
+                    aria-label={`查看${slide.alt}`}
+                    aria-pressed={index === activeSlide}
+                    className={`size-3 rounded-full border border-white/70 transition ${
+                      index === activeSlide ? "bg-white" : "bg-white/25 hover:bg-white/60"
+                    }`}
+                    key={slide.image}
+                    type="button"
+                    onClick={() => setActiveSlide(index)}
+                  />
+                ))}
               </div>
             </div>
           </div>
