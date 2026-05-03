@@ -145,6 +145,10 @@ function BookingForm() {
     <form className="rounded-lg border border-line bg-white p-7 shadow-soft max-sm:p-5" onSubmit={handleSubmit}>
       <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
         <label className={labelClass}>
+          期望到店时间
+          <input className={inputClass} name="arrivalTime" type="time" min="10:00" max="20:00" step="900" required />
+        </label>
+        <label className={labelClass}>
           主人姓名
           <input className={inputClass} name="owner" type="text" placeholder="请输入姓名" required />
         </label>
@@ -175,10 +179,6 @@ function BookingForm() {
         <label className={labelClass}>
           期望日期
           <input className={inputClass} name="date" type="date" min={today} required />
-        </label>
-        <label className={labelClass}>
-          期望到店时间
-          <input className={inputClass} name="arrivalTime" type="time" min="10:00" max="20:00" step="900" required />
         </label>
         <label className={labelClass}>
           期望时段
